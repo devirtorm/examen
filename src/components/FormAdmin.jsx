@@ -1,20 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
-import {
-  containsCommonSpanishWord,
-  containsSequentialNumbers,
-} from "@/helpers/validationHelpers";
-import Input from "../components/Input";
-import words from "an-array-of-spanish-words";
+import Input from "@/components/Input";
+import BreadCrumbAdmin from "@/components/BreadcrumbAdmin";
 
 function FormAdmin() {
   const [formData, setFormData] = useState({
     name: "",
     age: "",
     salary: "",
-    email2: "",
+    despacho: "",
     email: "",
     password: "",
+    time: "",
+    opcion1: "",
+    check1: false,
+    check2: false,
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
@@ -33,43 +33,17 @@ function FormAdmin() {
     }
   }, [errors]);
 
-  const validatePassword = (password) => {
-    const passwordValidationRules = [
-      {
-        test: (value) => /[a-z]/.test(value),
-        message: "Al menos una letra minúscula",
-      },
-      {
-        test: (value) => /[A-Z]/.test(value),
-        message: "Al menos una letra mayúscula",
-      },
-      { test: (value) => /[0-9]/.test(value), message: "Al menos un número" },
-      {
-        test: (value) => /[^a-zA-Z0-9]/.test(value),
-        message: "Al menos un símbolo especial",
-      },
-      { test: (value) => value.length >= 10, message: "Mínimo 10 caracteres" },
-    ];
-
-    let passwordErrors = passwordValidationRules
-      .filter((rule) => !rule.test(password))
-      .map((rule) => rule.message);
-
-    if (containsSequentialNumbers(password)) {
-      passwordErrors.push("No números consecutivos");
-    }
-
-    if (containsCommonSpanishWord(password, words)) {
-      passwordErrors.push(
-        "La contraseña no debe contener palabras comunes en español"
-      );
-    }
-
-    return passwordErrors;
-  };
 
   const validateForm = () => {
     let tempErrors = {};
+
+    if (!formData.check1 && !formData.check2) {
+      tempErrors.checks = "Selecciona al menos una opción";
+    }
+
+    if (!formData.opcion1) {
+      tempErrors.opcion1 = "Campo obligatorio";
+    }
 
     // Validación para el nombre
     if (!formData.name) {
@@ -78,57 +52,20 @@ function FormAdmin() {
       tempErrors.name = "El nombre contiene caracteres inválidos";
     }
 
-    // Validación para la edad
-    if (!formData.age) {
-      tempErrors.age = "La edad es obligatoria";
-    } else if (
-      !/^\d+$/.test(formData.age) ||
-      formData.age < 1 ||
-      formData.age > 100
-    ) {
-      tempErrors.age = "La edad debe ser un número entre 1 y 100";
+    // Validación para time
+    if (!formData.time) {
+      tempErrors.time = "Hora de consulta obligatoria";
+    } else if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(formData.time)) {
+      tempErrors.time = "El nombre contiene caracteres inválidos";
     }
 
-    // Validación para el sueldo
-    if (!formData.salary) {
-      tempErrors.salary = "El sueldo es obligatorio";
+    // Validación para despacho
+    if (!formData.time) {
+      tempErrors.despacho = "El numero de despacho es obligatorio";
     } else if (
-      !/^\d+(\.\d{1,2})?$/.test(formData.salary) ||
-      parseFloat(formData.salary) < 0
+      !/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,}$/.test(formData.despacho)
     ) {
-      tempErrors.salary =
-        "El sueldo debe ser un número positivo con hasta dos decimales";
-    }
-
-    // Validación para el correo electrónico 1
-    if (!formData.email) {
-      tempErrors.email = "El correo electrónico es obligatorio";
-    } else if (
-      !/^[a-zA-Z0-9._%+-]+@(gmail|hotmail|outlook|live|yahoo)\.com$/.test(
-        formData.email
-      )
-    ) {
-      tempErrors.email = "Correo electrónico no válido";
-    }
-
-    // Validación para el correo electrónico 2
-    if (!formData.email2) {
-      tempErrors.email2 = "El correo electrónico es obligatorio";
-    } else if (
-      !/^[a-zA-Z0-9._%+-]+@utdelacosta\.edu\.mx$/.test(formData.email2)
-    ) {
-      tempErrors.email2 = "Correo electrónico no válido";
-    }
-
-    // Validación para la contraseña
-    if (!formData.password) {
-      tempErrors.password = "La contraseña es obligatoria";
-    } else {
-      const passwordErrors = validatePassword(formData.password);
-      if (passwordErrors.length > 0) {
-        tempErrors.password =
-          "La contraseña no cumple con: " + passwordErrors.join(", ");
-      }
+      tempErrors.despacho = "Ingresa un codigo de despacho valido";
     }
 
     //se establecen los errores en el estado de errores
@@ -144,6 +81,7 @@ function FormAdmin() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     setIsSubmitted(true);
     if (validateForm()) {
       formData;
@@ -152,6 +90,9 @@ function FormAdmin() {
 
   return (
     <div className="container my-auto mx-auto p-4">
+      <h1 className="text-3xl text-center m-20 font-black">
+        Informe por profesor
+      </h1>
       <div>
         <form
           onSubmit={handleSubmit}
@@ -169,57 +110,151 @@ function FormAdmin() {
               isSubmitted={isSubmitted}
             />
             <Input
-              name="age"
+              name="despacho"
               type="text"
-              placeholder="Edad"
-              label="Edad"
-              value={formData.age}
+              placeholder="Ingresa el numero de despacho"
+              label="Despacho"
+              value={formData.despacho}
               onChange={handleChange}
-              error={errors.age}
+              error={errors.despacho}
               isSubmitted={isSubmitted}
             />
             <Input
-              name="salary"
-              type="text"
-              placeholder="3000.23"
-              label="Sueldo"
-              value={formData.salary}
+              name="time"
+              type="datetime-local"
+              placeholder="Ingresa el numero de despacho"
+              label="Despacho"
+              value={formData.time}
               onChange={handleChange}
-              error={errors.salary}
-              isSubmitted={isSubmitted}
-            />
-            <Input
-              name="email"
-              type="email"
-              placeholder="example@gmail|hotmail|outlook|live|yahoo.com"
-              label="Correo electrónico"
-              value={formData.email}
-              onChange={handleChange}
-              error={errors.email}
+              error={errors.time}
               isSubmitted={isSubmitted}
             />
 
-            <Input
-              name="email2"
-              type="text"
-              placeholder="example@utdelacosta.edu.mx"
-              label="Correo 2"
-              value={formData.email2}
-              onChange={handleChange}
-              error={errors.email2}
-              isSubmitted={isSubmitted}
-            />
+<div>
+              <label
+                htmlFor="countries"
+                className={`block mb-2 text-sm font-black ${
+                  isSubmitted
+                    ? errors.opcion1
+                      ? "text-red-700"
+                      : "text-green-800"
+                    : "text-gray-700 dark:text-gray-100"
+                }`}
+              >
+                Selecciona una opción
+              </label>
+              <select
+                id="opcion1"
+                name="opcion1"
+                value={formData.opcion1}
+                onChange={handleChange}
+                className={`text-xs rounded block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 border font-semibold border-gray-300 focus:ring-indigo-500 ${
+                  isSubmitted
+                    ? errors.opcion1
+                      ? "text-red-700 border-red-700"
+                      : "text-green-800 border-green-700"
+                    : "text-gray-700 dark:text-gray-100"
+                }`}
+              >
+                <option value="">Selecciona un departamento...</option>
+                <option value="Luis Gil Pérez">Ingeniería y ciencia</option>
+                <option value="Amparo Fernández Vidal">
+                  Lenguaje de sistemas
+                </option>
+              </select>
+              {isSubmitted && (
+                <p
+                  className={`mt-2 font-bold text-xs ${
+                    isSubmitted
+                      ? errors.opcion1
+                        ? "text-red-700"
+                        : "text-green-700"
+                      : "text-gray-700"
+                  }`}
+                >
+                  {errors.opcion1
+                    ? errors.opcion1
+                    : "Campo completado correctamente"}
+                </p>
+              )}
+            </div>
 
-            <Input
-              name="password"
-              type="password"
-              placeholder="Example!03"
-              label="Ingresa contraseña"
-              value={formData.password}
-              onChange={handleChange}
-              error={errors.password}
-              isSubmitted={isSubmitted}
-            />
+
+            <div>
+              <label
+                htmlFor="default-checkbox"
+                className={`block mb-2 text-sm font-black ${
+                  isSubmitted
+                    ? errors.checks
+                      ? "text-red-700"
+                      : "text-green-800"
+                    : "text-gray-700 dark:text-gray-100"
+                }`}
+              >
+                Lenguajes de programación
+              </label>
+              <div className="flex items-center mb-4">
+                <input
+                  id="default-checkbox"
+                  type="checkbox"
+                  name="check1"
+                  onChange={handleChange}
+                  value={formData.check1}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label
+                  htmlFor="default-checkbox"
+                  className={`ms-2 text-sm font-medium dark:text-gray-300 ${
+                    isSubmitted
+                      ? errors.checks
+                        ? "text-red-700"
+                        : "text-green-700"
+                      : ""
+                  }`}
+                >
+                  Lenguajes de programación
+                </label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  id="checked-checkbox"
+                  type="checkbox"
+                  onChange={handleChange}
+                  value={formData.check2}
+                  name="check2"
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label
+                  htmlFor="checked-checkbox"
+                  className={`ms-2 text-sm font-medium dark:text-gray-300 ${
+                    isSubmitted
+                      ? errors.checks
+                        ? "text-red-700"
+                        : "text-green-700"
+                      : ""
+                  }`}
+                >
+                  Entornos de usuario
+                </label>
+              </div>
+              {isSubmitted && (
+                <p
+                  className={`mt-2 font-bold text-xs ${
+                    isSubmitted
+                      ? errors.checks
+                        ? "text-red-700"
+                        : "text-green-700"
+                      : "text-gray-700"
+                  }`}
+                >
+                  {errors.checks
+                    ? errors.checks
+                    : "Campo completado correctamente"}
+                </p>
+              )}
+            </div>
+
+
           </div>
 
           <button
@@ -242,6 +277,7 @@ function FormAdmin() {
           </div>
         )}
       </div>
+      <BreadCrumbAdmin />
     </div>
   );
 }
